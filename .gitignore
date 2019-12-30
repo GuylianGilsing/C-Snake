@@ -1,2 +1,2 @@
-builds/linux/*.exe
-builds/windows/*.exe
+builds/linux/main.exe
+builds/windows/main.exe

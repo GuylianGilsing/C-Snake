@@ -42,4 +42,5 @@ public:
 
 private:
     void AddBodyPart(int a_x, int a_y);
+    void CheckIfItAteTheApple(glm::vec2 a_snakeHead, glm::vec2 a_applePos);
 };

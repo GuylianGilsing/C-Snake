@@ -174,9 +174,10 @@ void Game::Draw()
     std::vector<glm::vec2> m_snakeBodyParts = this->snake.GetBodyParts();
     glm::vec3 m_snakeBodyColor = glm::vec3(0.0f, 1.0f, 0.0f);
 
+    // Draw the snake.
     this->renderer.Render(&m_snakeBodyParts, this->snakeBodyPartSizeInPixels, m_snakeBodyColor);
 
-    // Draw apple.
+    // Draw the apple.
     this->renderer.RenderSingle(this->applePosition, this->snakeBodyPartSizeInPixels, glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
@@ -208,6 +209,30 @@ void Game::RandomizeApple()
 {
     int m_appleX = rand() % (this->screenWidth / this->snakeBodyPartSizeInPixels);
     int m_appleY = rand() % (this->screenHeight / this->snakeBodyPartSizeInPixels);
+
+    // Make sure that the apple does not spawn inside the snake's body.
+    std::vector<glm::vec2> m_snakeBodyParts = this->snake.GetBodyParts();
+
+    bool m_appleIsInsideTheSnake = false;
+    while(m_appleIsInsideTheSnake)
+    {
+        bool m_appleIsInsideBodyPart = false;
+
+        for(int i = 0; i < m_snakeBodyParts.size(); i += 1)
+        {
+            glm::vec2 m_snakeBodyPart = m_snakeBodyParts[i];
+
+            // Check if the apple is located on a snake part.
+            if(m_appleX == m_snakeBodyPart.x && m_appleY == m_snakeBodyPart.y)
+            {
+                m_appleIsInsideBodyPart = true;
+                break;
+            }
+        }
+
+        if(m_appleIsInsideBodyPart)
+            m_appleIsInsideTheSnake = true;
+    }
 
     this->applePosition.x = m_appleX;
     this->applePosition.y = m_appleY;

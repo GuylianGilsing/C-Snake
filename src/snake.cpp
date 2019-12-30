@@ -48,9 +48,25 @@ void Snake::Update(int a_maxcollWidth, int a_maxcollHeight, glm::vec2 a_applePos
 
     auto m_snakeHead = this->bodyParts.begin();
 
-    // Check if the snake is out of bounds.
-    if((m_snakeHead->x < 0 || m_snakeHead->x >= a_maxcollWidth) || (m_snakeHead->y < 0 || m_snakeHead->y >= a_maxcollHeight))
-        m_snakeIsColliding = true;
+    // Make the snake wrap around the horizontal screen axis.
+    if(m_snakeHead->x <= -1)
+    {
+        m_snakeHead->x = a_maxcollWidth;
+    }
+    else if(m_snakeHead->x > a_maxcollWidth - 1)
+    {
+        m_snakeHead->x = 0;
+    }
+
+    // Make the snake wrap around the vertical screen axis.
+    if(m_snakeHead->y <= -1)
+    {
+        m_snakeHead->y = a_maxcollHeight;
+    }
+    else if(m_snakeHead->y > a_maxcollHeight - 1)
+    {
+        m_snakeHead->y = 0;
+    }
 
     // Make body go the it's neighbours position.
     glm::vec2 m_neighbourPosition = glm::vec2(-1.0f, -1.0f);
@@ -79,6 +95,8 @@ void Snake::Update(int a_maxcollWidth, int a_maxcollHeight, glm::vec2 a_applePos
         // Update the body part position.
         this->bodyParts[i] = m_curBodyPart;
     }
+
+    this->CheckIfItAteTheApple(*m_snakeHead, a_applePos);
 
     // Update the head direction.
     switch(this->curDirection)
@@ -109,33 +127,7 @@ void Snake::Update(int a_maxcollWidth, int a_maxcollHeight, glm::vec2 a_applePos
             m_snakeIsColliding = true;
     }
 
-    // Detect if the snake ate an apple.
-    if(m_snakeHead->x == a_applePos.x && m_snakeHead->y == a_applePos.y)
-    {
-        // Retrieve the last body part and add the new body part behind that.
-        glm::vec2 m_lastBodyPartAtTail = this->bodyParts[this->bodyParts.size() - 1];
-
-        switch(this->curDirection)
-        {
-            case SnakeDirection::UP:
-                this->AddBodyPart(m_lastBodyPartAtTail.x, m_lastBodyPartAtTail.y + 1);
-                break;
-
-            case SnakeDirection::DOWN:
-                this->AddBodyPart(m_lastBodyPartAtTail.x, m_lastBodyPartAtTail.y - 1);
-                break;
-
-            case SnakeDirection::LEFT:
-                this->AddBodyPart(m_lastBodyPartAtTail.x + 1, m_lastBodyPartAtTail.y);
-                break;
-
-            case SnakeDirection::RIGHT:
-                this->AddBodyPart(m_lastBodyPartAtTail.x - 1, m_lastBodyPartAtTail.y);
-                break;
-        }
-
-        this->ateTheApple = true;
-    }
+    this->CheckIfItAteTheApple(*m_snakeHead, a_applePos);
 
     // Let the update loop know that the snake has bumped into something
     if(m_snakeIsColliding)
@@ -156,4 +148,36 @@ void Snake::Reset()
     this->AddBodyPart(this->startPosX + 1, this->startPosY);
 
     this->curDirection = SnakeDirection::LEFT;
+}
+
+void Snake::CheckIfItAteTheApple(glm::vec2 a_snakeHead, glm::vec2 a_applePos)
+{
+    // Detect if the snake ate an apple.
+    if(a_snakeHead.x == a_applePos.x && a_snakeHead.y == a_applePos.y)
+    {
+        // Retrieve the last body part and the new body part behind that.
+        glm::vec2 m_lastBodyPartAtTail = this->bodyParts[this->bodyParts.size() - 1];
+        glm::vec2 m_lastBodyPartNeighbourAtTail = this->bodyParts[this->bodyParts.size() - 2];
+
+        // Check in which direction the last piece goes by checking 
+        // if it's neighbouring piece is located on the left, right, top or bottom.
+        if(m_lastBodyPartAtTail.x - 1 == m_lastBodyPartNeighbourAtTail.x && m_lastBodyPartAtTail.y == m_lastBodyPartNeighbourAtTail.y)
+        {
+            this->AddBodyPart(m_lastBodyPartAtTail.x + 1, m_lastBodyPartAtTail.y);
+        }
+        else if(m_lastBodyPartAtTail.x + 1 == m_lastBodyPartNeighbourAtTail.x && m_lastBodyPartAtTail.y == m_lastBodyPartNeighbourAtTail.y)
+        {
+            this->AddBodyPart(m_lastBodyPartAtTail.x - 1, m_lastBodyPartAtTail.y);
+        }
+        else if(m_lastBodyPartAtTail.y + 1 == m_lastBodyPartNeighbourAtTail.y && m_lastBodyPartAtTail.x == m_lastBodyPartNeighbourAtTail.x)
+        {
+            this->AddBodyPart(m_lastBodyPartAtTail.x, m_lastBodyPartAtTail.y - 1);
+        }
+        else if(m_lastBodyPartAtTail.y - 1 == m_lastBodyPartNeighbourAtTail.y && m_lastBodyPartAtTail.x == m_lastBodyPartNeighbourAtTail.x)
+        {
+            this->AddBodyPart(m_lastBodyPartAtTail.x, m_lastBodyPartAtTail.y + 1);
+        }
+
+        this->ateTheApple = true;
+    }
 }
